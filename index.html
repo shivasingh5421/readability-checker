@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chapter Readability Checker · Literary & Editorial Analyzer</title>
+<style>
+:root {
+  --bg: #f8f6f0;
+  --bg-subtle: #efeae0;
+  --card: #ffffff;
+  --card-border: #e2ddd3;
+  --ink: #1f1d19;
+  --ink-secondary: #575249;
+  --muted: #857e72;
+  --line: #ded8cd;
+  --accent: #b43e24;
+  --accent-hover: #96311a;
+  --accent-soft: rgba(180, 62, 36, 0.09);
+  --hl-rank1: #fee2e2;
+  --hl-rank1-border: #f87171;
+  --hl-rank2: #ffedd5;
+  --hl-rank2-border: #fb923c;
+  --hl-rank3: #fef9c3;
+  --hl-rank3-border: #facc15;
+  --hl-rank4: #e0f2fe;
+  --hl-rank4-border: #38bdf8;
+  --hl-rank5: #f3e8ff;
+  --hl-rank5-border: #c084fc;
+  --chip-bg: #f0ebe1;
+  --focus-ring: rgba(180, 62, 36, 0.35);
+  --shadow-sm: 0 1px 3px rgba(31,29,25,0.05);
+  --shadow-md: 0 4px 14px rgba(31,29,25,0.07);
+  --shadow-lg: 0 10px 28px rgba(31,29,25,0.1);
+  --font-serif: "Charter", "Bitstream Charter", "Iowan Old Style", "Sitka Text", "Georgia", "Times New Roman", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+[data-theme="sepia"] {
+  --bg: #f4ecda;
+  --bg-subtle: #ebdcb9;
+  --card: #fbf7ef;
+  --card-border: #dfd0b3;
+  --ink: #2b251b;
+  --ink-secondary: #635742;
+  --muted: #8c7d65;
+  --line: #ded0b5;
+  --accent: #a33e24;
+  --accent-hover: #86301a;
+  --accent-soft: rgba(163, 62, 36, 0.12);
+  --chip-bg: #e8dcc3;
+}
+
+[data-theme="dark"] {
+  --bg: #141311;
+  --bg-subtle: #1c1a17;
+  --card: #201e1a;
+  --card-border: #343029;
+  --ink: #f0ebe2;
+  --ink-secondary: #beb7aa;
+  --muted: #8c8578;
+  --line: #38332a;
+  --accent: #f27c62;
+  --accent-hover: #f59681;
+  --accent-soft: rgba(242, 124, 98, 0.16);
+  --hl-rank1: #5c1d1d;
+  --hl-rank1-border: #993333;
+  --hl-rank2: #522e11;
+  --hl-rank2-border: #9a4c16;
+  --hl-rank3: #4d4411;
+  --hl-rank3-border: #8a7a1c;
+  --hl-rank4: #153a5b;
+  --hl-rank4-border: #22649a;
+  --hl-rank5: #381f57;
+  --hl-rank5-border: #6838a1;
+  --chip-bg: #2b2822;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.4);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="sepia"]) {
+    --bg: #141311;
+    --bg-subtle: #1c1a17;
+    --card: #201e1a;
+    --card-border: #343029;
+    --ink: #f0ebe2;
+    --ink-secondary: #beb7aa;
+    --muted: #8c8578;
+    --line: #38332a;
+    --accent: #f27c62;
+    --accent-hover: #f59681;
+    --accent-soft: rgba(242, 124, 98, 0.16);
+    --hl-rank1: #5c1d1d;
+    --hl-rank1-border: #993333;
+    --hl-rank2: #522e11;
+    --hl-rank2-border: #9a4c16;
+    --hl-rank3: #4d4411;
+    --hl-rank3-border: #8a7a1c;
+    --hl-rank4: #153a5b;
+    --hl-rank4-border: #22649a;
+    --hl-rank5: #381f57;
+    --hl-rank5-border: #6838a1;
+    --chip-bg: #2b2822;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 17px/1.65 var(--font-serif);
+  letter-spacing: -0.003em;
+  transition: background 0.25s ease, color 0.25s ease;
+  min-height: 100vh;
+}
+
+header {
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(10px);
+}
+.header-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.25rem;
+  font-family: var(--font-sans);
+  box-shadow: 0 2px 8px rgba(180, 62, 36, 0.3);
+}
+.brand h1 {
+  font-size: 1.25rem;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+.brand-tag {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: var(--chip-bg);
+  color: var(--muted);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+.theme-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 3px;
+  border-radius: 20px;
+}
+.theme-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.theme-btn.active {
+  background: var(--chip-bg);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 30px 20px 80px;
+}
+
+.intro-lead {
+  font-size: 1.05rem;
+  color: var(--ink-secondary);
+  margin: 0 0 20px;
+  font-family: var(--font-sans);
+  max-width: 780px;
+  line-height: 1.55;
+}
+
+.editor-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-md);
+  padding: 18px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.editor-card:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.editor-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+textarea {
+  width: 100%;
+  min-height: 220px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font: 1.05rem/1.7 var(--font-serif);
+  resize: vertical;
+  outline: none;
+  padding: 4px;
+}
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.editor-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+  font-family: var(--font-sans);
+}
+.sample-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sample-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 600;
+  margin-right: 2px;
+}
+.btn-preset {
+  background: var(--bg-subtle);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-preset:hover {
+  background: var(--line);
+  color: var(--accent);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+button {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  padding: 9px 16px;
+  border-radius: 8px;
+  font: 600 0.88rem var(--font-sans);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+button:hover {
+  border-color: var(--muted);
+}
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(180, 62, 36, 0.25);
+}
+button.primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+button.secondary {
+  background: var(--card);
+  color: var(--ink-secondary);
+}
+.btn-file-label {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink-secondary);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font: 600 0.82rem var(--font-sans);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.btn-file-label:hover {
+  border-color: var(--muted);
+  color: var(--ink);
+}
+
+#out {
+  margin-top: 36px;
+  animation: fadeIn 0.35s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-score-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+@media (min-width: 740px) {
+  .hero-score-grid {
+    grid-template-columns: 1.4fr 1fr;
+  }
+}
+.hero-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.hero-card.accented {
+  border-left: 5px solid var(--accent);
+}
+.hero-title {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.hero-main-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.hero-score-num {
+  font-size: 3.3rem;
+  font-weight: 800;
+  font-family: var(--font-sans);
+  color: var(--accent);
+  line-height: 1;
+}
+.hero-score-meta {
+  display: flex;
+  flex-direction: column;
+}
+.hero-score-label {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.hero-score-desc {
+  font-size: 0.88rem;
+  color: var(--ink-secondary);
+  font-family: var(--font-sans);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.gauge-bar-track {
+  height: 10px;
+  background: var(--bg-subtle);
+  border-radius: 5px;
+  margin-top: 18px;
+  overflow: hidden;
+  position: relative;
+}
+.gauge-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #ef4444 0%, #f59e0b 40%, #10b981 100%);
+  width: 0%;
+  transition: width 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.gauge-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.metric-box {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: var(--font-sans);
+  box-shadow: var(--shadow-sm);
+}
+.metric-box-val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.metric-box-lbl {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 4px;
+  display: block;
+}
+.metric-box-sub {
+  font-size: 0.7rem;
+  color: var(--ink-secondary);
+  opacity: 0.85;
+}
+
+.formulas-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 26px;
+  font-family: var(--font-sans);
+}
+.formulas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.formula-item {
+  border-left: 3px solid var(--line);
+  padding-left: 10px;
+}
+.formula-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  display: block;
+}
+.formula-val {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.formula-note {
+  font-size: 0.74rem;
+  color: var(--ink-secondary);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 32px 0 14px;
+}
+.section-title {
+  font-size: 1.35rem;
+  margin: 0;
+  font-weight: 700;
+  font-family: var(--font-serif);
+}
+.view-modes {
+  display: inline-flex;
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 3px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+}
+.view-mode-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.8rem;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.view-mode-btn.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.reader-box {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 24px 28px;
+  box-shadow: var(--shadow-sm);
+  font-size: 1.12rem;
+  line-height: 1.88;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.reader-sentence {
+  border-radius: 4px;
+  padding: 1px 3px;
+  margin: 0 -1px;
+  cursor: pointer;
+  transition: background-color 0.15s, box-shadow 0.15s;
+}
+.reader-sentence:hover {
+  background: rgba(180, 62, 36, 0.12) !important;
+}
+.reader-sentence.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--focus-ring);
+  animation: pulseFocus 1.2s ease-in-out infinite alternate;
+}
+@keyframes pulseFocus {
+  from { outline-color: var(--accent); }
+  to { outline-color: #f97316; }
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  font-family: var(--font-sans);
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 10px;
+  color: #ffffff;
+  vertical-align: super;
+  margin-left: 3px;
+  margin-right: 1px;
+  line-height: 1;
+}
+.rank-1 { background: var(--hl-rank1); color: inherit; border-bottom: 2px solid var(--hl-rank1-border); }
+.rank-2 { background: var(--hl-rank2); color: inherit; border-bottom: 2px solid var(--hl-rank2-border); }
+.rank-3 { background: var(--hl-rank3); color: inherit; border-bottom: 2px solid var(--hl-rank3-border); }
+.rank-4 { background: var(--hl-rank4); color: inherit; border-bottom: 2px solid var(--hl-rank4-border); }
+.rank-5 { background: var(--hl-rank5); color: inherit; border-bottom: 2px solid var(--hl-rank5-border); }
+
+.badge-1 { background: #b91c1c; color:#fff; }
+.badge-2 { background: #c2410c; color:#fff; }
+.badge-3 { background: #a16207; color:#fff; }
+.badge-4 { background: #0369a1; color:#fff; }
+.badge-5 { background: #7e22ce; color:#fff; }
+
+.heat-1 { background: rgba(34, 197, 94, 0.14); }
+.heat-2 { background: rgba(132, 204, 22, 0.18); }
+.heat-3 { background: rgba(234, 179, 8, 0.24); }
+.heat-4 { background: rgba(249, 115, 22, 0.30); }
+.heat-5 { background: rgba(239, 68, 68, 0.38); }
+
+.complex-word-highlight {
+  text-decoration: underline wavy var(--accent);
+  text-underline-offset: 3px;
+}
+
+.hardest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+}
+.hard-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  position: relative;
+}
+.hard-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--muted);
+}
+.hard-card.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.hard-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-family: var(--font-sans);
+}
+.hard-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+.hard-card-actions {
+  display: flex;
+  gap: 6px;
+}
+.hard-card-btn {
+  background: var(--bg-subtle);
+  border: 1px solid var(--line);
+  color: var(--ink-secondary);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+.hard-card-btn:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+.hard-card-text {
+  font-size: 1.06rem;
+  line-height: 1.6;
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-style: normal;
+  border-left: 3px solid var(--line);
+  padding-left: 14px;
+}
+.hard-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.meta-chip {
+  background: var(--chip-bg);
+  color: var(--ink-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.meta-chip.warning {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.diagnosis-box {
+  background: var(--bg-subtle);
+  border-left: 3px solid var(--accent);
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  margin-top: 10px;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+}
+.diagnosis-title {
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: all 0.25s ease;
+  z-index: 1000;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hide { display: none !important; }
+
+@media (max-width: 640px) {
+  main { padding: 20px 14px 60px; }
+  .header-inner { padding: 10px 14px; }
+  .reader-box { padding: 18px 16px; font-size: 1.02rem; }
+  .hero-score-num { font-size: 2.6rem; }
+  .section-header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">¶</div>
+      <div>
+        <h1>Chapter Readability Checker</h1>
+      </div>
+      <span class="brand-tag">Editorial Pro</span>
+    </div>
+
+    <div class="theme-selector">
+      <button class="theme-btn" id="theme-light" title="Light Theme">Light</button>
+      <button class="theme-btn" id="theme-sepia" title="Warm Paper Theme">Paper</button>
+      <button class="theme-btn" id="theme-dark" title="Dark Theme">Dark</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <p class="intro-lead">
+    Analyze chapter flow, linguistic density, and sentence cadence. Powered by an enhanced phonetic syllable engine, multi-formula readability algorithms (Flesch, Fog, SMOG, Coleman-Liau, ARI), and syntactic clause analysis to uncover the truly demanding sentences. Runs completely in your browser.
+  </p>
+
+  <div class="editor-card">
+    <div class="editor-header">
+      <span id="live-counts">0 words · 0 characters</span>
+      <div class="editor-pills">
+        <label class="btn-file-label" title="Upload a text or markdown file">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Import .txt / .md
+          <input type="file" id="file-in" accept=".txt,.md,.text" style="display:none">
+        </label>
+      </div>
+    </div>
+
+    <textarea id="in" placeholder="Paste your chapter, essay, or excerpt here…"></textarea>
+
+    <div class="editor-footer">
+      <div class="sample-presets">
+        <span class="sample-label">Presets:</span>
+        <button class="btn-preset" data-sample="bureaucratic">Dense & Bureaucratic</button>
+        <button class="btn-preset" data-sample="classic">Classic Victorian (Ornate)</button>
+        <button class="btn-preset" data-sample="punchy">Crisp & Punchy (Minimalist)</button>
+        <button class="btn-preset" data-sample="academic">Scientific / Cognitive</button>
+      </div>
+
+      <div class="action-buttons">
+        <button class="secondary" id="clear">Clear</button>
+        <button class="primary" id="go">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Analyze Readability
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="out" class="hide">
+    <!-- Top Hero Metric -->
+    <div class="hero-score-grid">
+      <div class="hero-card accented">
+        <div class="hero-title">
+          <span>Overall Readability Assessment</span>
+          <span id="target-audience" class="brand-tag">General Audience</span>
+        </div>
+        <div class="hero-main-stat">
+          <div class="hero-score-num" id="fre">–</div>
+          <div class="hero-score-meta">
+            <div class="hero-score-label" id="fre-label">Plain English</div>
+            <div class="hero-score-desc" id="fre-desc">Easily understood by an average 13–15 year old.</div>
+          </div>
+        </div>
+        <div class="gauge-bar-track">
+          <div class="gauge-bar-fill" id="barfill"></div>
+        </div>
+        <div class="gauge-ticks">
+          <span>Very Confusing (0)</span>
+          <span>Standard (60)</span>
+          <span>Effortless (100)</span>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-title">
+          <span>Grade & Pacing</span>
+          <span>Consensus</span>
+        </div>
+        <div style="display:flex; justify-content:space-around; align-items:center; height:calc(100% - 40px);">
+          <div style="text-align:center;">
+            <div class="hero-score-num" style="color:var(--ink);" id="grade">–</div>
+            <div class="metric-box-lbl" style="font-size:0.85rem; font-weight:600;">Consensus Grade</div>
+            <div class="metric-box-sub" id="school-level">Middle School</div>
+          </div>
+          <div style="width:1px; height:60px; background:var(--line);"></div>
+          <div style="text-align:center;">
+            <div class="hero-score-num" style="color:var(--ink-secondary);" id="time">–</div>
+            <div class="metric-box-lbl" style="font-size:0.85rem; font-weight:600;">Reading Time</div>
+            <div class="metric-box-sub" id="speak-time">~0 min audio</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Vital Statistics -->
+    <div class="metrics-row">
+      <div class="metric-box">
+        <div class="metric-box-val" id="words">–</div>
+        <span class="metric-box-lbl">Total Words</span>
+        <span class="metric-box-sub" id="unique-words">– unique</span>
+      </div>
+      <div class="metric-box">
+        <div class="metric-box-val" id="sents">–</div>
+        <span class="metric-box-lbl">Sentences</span>
+        <span class="metric-box-sub" id="paras">– paragraphs</span>
+      </div>
+      <div class="metric-box">
+        <div class="metric-box-val" id="avg-len">–</div>
+        <span class="metric-box-lbl">Avg Words / Sentence</span>
+        <span class="metric-box-sub" id="longest-sent">Max: –</span>
+      </div>
+      <div class="metric-box">
+        <div class="metric-box-val" id="complex-pct">–</div>
+        <span class="metric-box-lbl">Complex Words</span>
+        <span class="metric-box-sub" id="complex-count">≥ 3 syllables</span>
+      </div>
+      <div class="metric-box">
+        <div class="metric-box-val" id="avg-syl">–</div>
+        <span class="metric-box-lbl">Syllables / Word</span>
+        <span class="metric-box-sub" id="avg-chars">– chars / word</span>
+      </div>
+    </div>
+
+    <!-- Multi-Formula Suite Drawer -->
+    <details class="formulas-card">
+      <summary style="font-weight:600; cursor:pointer; color:var(--ink-secondary); display:flex; justify-content:space-between; align-items:center;">
+        <span>Multi-Formula Benchmarks (FKGL, Gunning Fog, SMOG, Coleman-Liau, ARI)</span>
+        <span style="font-size:0.75rem; color:var(--accent);">Toggle Details ▼</span>
+      </summary>
+      <div class="formulas-grid">
+        <div class="formula-item">
+          <span class="formula-name">Flesch-Kincaid Grade</span>
+          <span class="formula-val" id="fkgl-val">–</span>
+          <span class="formula-note">US school grade level</span>
+        </div>
+        <div class="formula-item">
+          <span class="formula-name">Gunning Fog Index</span>
+          <span class="formula-val" id="fog-val">–</span>
+          <span class="formula-note">Years of formal education</span>
+        </div>
+        <div class="formula-item">
+          <span class="formula-name">Coleman-Liau Index</span>
+          <span class="formula-val" id="cli-val">–</span>
+          <span class="formula-note">Character-based (no syllable bias)</span>
+        </div>
+        <div class="formula-item">
+          <span class="formula-name">SMOG Index</span>
+          <span class="formula-val" id="smog-val">–</span>
+          <span class="formula-note">Healthcare & literature standard</span>
+        </div>
+        <div class="formula-item">
+          <span class="formula-name">Automated Readability (ARI)</span>
+          <span class="formula-val" id="ari-val">–</span>
+          <span class="formula-note">Stroke & word-length formula</span>
+        </div>
+      </div>
+    </details>
+
+    <!-- Interactive Reader Text Box -->
+    <div class="section-header">
+      <h2 class="section-title">Chapter Cadence & Sentence Inspector</h2>
+      <div class="view-modes">
+        <button class="view-mode-btn active" data-mode="top5">Top 5 Hardest</button>
+        <button class="view-mode-btn" data-mode="heatmap">Full Heatmap</button>
+        <button class="view-mode-btn" data-mode="complex">Complex Words</button>
+        <button class="view-mode-btn" data-mode="plain">Plain Text</button>
+      </div>
+    </div>
+    <div class="reader-box" id="marked"></div>
+
+    <!-- The 5 Hardest Sentences Detailed Breakdown -->
+    <div class="section-header" style="margin-top: 40px;">
+      <div>
+        <h2 class="section-title">The 5 Most Demanding Sentences</h2>
+        <span style="font-size:0.85rem; color:var(--muted); font-family:var(--font-sans);">
+          Ranked using a multi-factor difficulty index: length burden, polysyllabic density, clause nesting, and nominalization.
+        </span>
+      </div>
+      <button class="secondary" id="copy-report-btn" style="font-size:0.8rem; padding:6px 12px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy Full Report
+      </button>
+    </div>
+
+    <div class="hardest-list" id="hard"></div>
+  </div>
+</main>
+
+<div id="toast" class="toast">Copied to clipboard!</div>
+
+<script>
+(function(){
+'use strict';
+
+var $ = function(id) { return document.getElementById(id); };
+
+/* --- Safe LocalStorage helper --- */
+function safeStorageGet(key, def) {
+  try { return localStorage.getItem(key) || def; } catch(e) { return def; }
+}
+function safeStorageSet(key, val) {
+  try { localStorage.setItem(key, val); } catch(e) {}
+}
+
+/* --- Theme Handling --- */
+var currentTheme = safeStorageGet('theme_preference', 'auto');
+function applyTheme(t) {
+  if (t === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  } else if (t === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  } else if (t === 'sepia') {
+    document.documentElement.setAttribute('data-theme', 'sepia');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+  ['light', 'dark', 'sepia'].forEach(function(k){
+    var b = $('theme-' + k);
+    if (b) b.classList.toggle('active', t === k);
+  });
+  safeStorageSet('theme_preference', t);
+}
+$('theme-light').onclick = function(){ applyTheme('light'); };
+$('theme-dark').onclick = function(){ applyTheme('dark'); };
+$('theme-sepia').onclick = function(){ applyTheme('sepia'); };
+if (currentTheme !== 'auto') applyTheme(currentTheme);
+
+/* --- Toast notification --- */
+function showToast(msg) {
+  var t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+
+/* --- Robust Clipboard helper --- */
+function copyToClipboard(text, successMsg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){
+      showToast(successMsg);
+    }).catch(function(){
+      fallbackCopy(text, successMsg);
+    });
+  } else {
+    fallbackCopy(text, successMsg);
+  }
+}
+function fallbackCopy(text, successMsg) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast(successMsg);
+  } catch(e) {
+    showToast('Copied text!');
+  }
+  document.body.removeChild(ta);
+}
+
+/* --- Advanced Syllable Counter & Lexicon --- */
+var IRREGULAR_SYLLABLES = {
+  'the': 1, 'a': 1, 'an': 1, 'to': 1, 'of': 1, 'in': 1, 'is': 1, 'you': 1, 'that': 1, 'it': 1,
+  'he': 1, 'was': 1, 'for': 1, 'on': 1, 'are': 1, 'as': 1, 'with': 1, 'his': 1, 'they': 1,
+  'at': 1, 'be': 1, 'this': 1, 'have': 1, 'from': 1, 'or': 1, 'one': 1, 'had': 1, 'by': 1,
+  'word': 1, 'but': 1, 'not': 1, 'what': 1, 'all': 1, 'were': 1, 'we': 1, 'when': 1, 'your': 1,
+  'can': 1, 'said': 1, 'there': 1, 'use': 1, 'each': 1, 'which': 1, 'she': 1, 'do': 1, 'how': 1,
+  'their': 1, 'if': 1, 'will': 1, 'up': 1, 'other': 1, 'about': 2, 'out': 1, 'many': 2,
+  'then': 1, 'them': 1, 'these': 1, 'so': 1, 'some': 1, 'her': 1, 'would': 1, 'make': 1,
+  'like': 1, 'him': 1, 'into': 2, 'time': 1, 'has': 1, 'look': 1, 'two': 1, 'more': 1,
+  'write': 1, 'go': 1, 'see': 1, 'number': 2, 'no': 1, 'way': 1, 'could': 1, 'people': 2,
+  'my': 1, 'than': 1, 'first': 1, 'water': 2, 'been': 1, 'call': 1, 'who': 1, 'oil': 1,
+  'its': 1, 'now': 1, 'find': 1, 'long': 1, 'down': 1, 'day': 1, 'did': 1, 'get': 1,
+  'come': 1, 'made': 1, 'may': 1, 'part': 1, 'rhythm': 2, 'rhythms': 2, 'queue': 1,
+  'business': 2, 'every': 2, 'evening': 2, 'different': 3, 'vegetable': 3, 'chocolate': 2,
+  'interesting': 3, 'wednesday': 2, 'comfortable': 4, 'temperature': 4, 'several': 2,
+  'literature': 3, 'miniature': 3, 'natural': 2, 'actually': 4, 'family': 3, 'special': 2,
+  'social': 2, 'official': 3, 'crucial': 2, 'especially': 4, 'usually': 4, 'generally': 4,
+  'finally': 3, 'poem': 2, 'poetry': 3, 'poet': 2, 'chaos': 2, 'lion': 2, 'giant': 2,
+  'diet': 2, 'quiet': 2, 'science': 2, 'society': 4, 'variety': 4, 'anxiety': 4,
+  'naive': 2, 'oasis': 3, 'cooperate': 4, 'coordinate': 4, 'create': 2, 'created': 3,
+  'creating': 3, 'creation': 3, 'area': 3, 'idea': 3, 'ideal': 3, 'video': 3, 'radio': 2,
+  'audio': 2, 'studio': 3, 'media': 3, 'stadium': 3, 'museum': 3, 'vacuum': 3,
+  'individual': 5, 'visual': 2, 'usual': 2, 'mutual': 2, 'actual': 2, 'annual': 2,
+  'manual': 2, 'graduate': 3, 'graduated': 4, 'graduating': 4, 'gradual': 2, 'gradually': 3,
+  'sensual': 2, 'virtual': 2, 'spiritual': 3, 'perpetual': 3, 'habitual': 3, 'punctual': 2,
+  'eventual': 3, 'eventually': 4, 'intellectual': 4, 'fluctuate': 3, 'evaluate': 4,
+  'situation': 4, 'fluctuation': 3, 'accentuate': 4, 'insinuate': 4, 'continual': 3,
+  'unprecedented': 5, 'bureaucratic': 4, 'circumlocution': 5, 'deteriorating': 6,
+  'notwithstanding': 4, 'reconciling': 4, 'deliberated': 4, 'extensively': 4, 'reservoir': 3,
+  'unavoidable': 5, 'proliferated': 4, 'incessantly': 4, 'exacerbated': 4,
+  'correspondence': 4, 'characterising': 5, 'characterizing': 5, 'representatives': 5
+};
+
+function countSyllables(rawWord) {
+  var w = rawWord.toLowerCase().replace(/[^a-z]/g, '');
+  if (!w) return 0;
+  if (w.length <= 2) return 1;
+  if (Object.prototype.hasOwnProperty.call(IRREGULAR_SYLLABLES, w)) {
+    return IRREGULAR_SYLLABLES[w];
+  }
+
+  var count = 0;
+  var vowels = 'aeiouy';
+  var inVowel = false;
+
+  for (var i = 0; i < w.length; i++) {
+    var isV = vowels.indexOf(w[i]) !== -1;
+    if (isV && !inVowel) {
+      count++;
+      inVowel = true;
+    } else if (!isV) {
+      inVowel = false;
+    }
+  }
+
+  var dipMatch = w.match(/(?:tion|sion|cian|cial|tial|tious|cious|xious|guise|guard)/g);
+  if (dipMatch) {
+    count -= dipMatch.length;
+  }
+
+  var sepMatch = w.match(/[^ctsgyx](?:ia|io|eo|ua|ii|uo)/g);
+  if (sepMatch) {
+    count += sepMatch.length;
+  }
+
+  if (w.endsWith('e') && !w.endsWith('ee') && !w.endsWith('oe') && !w.endsWith('ye')) {
+    if (/.[bcdfghjklmnpqrstvwxyz]le$/.test(w)) {
+      // syllabic 'le'
+    } else {
+      count--;
+    }
+  }
+
+  if (w.endsWith('ed') && !w.endsWith('eed')) {
+    if (!/[td]ed$/.test(w)) {
+      count--;
+    }
+  }
+
+  if (/[bcdfghjklmnpqrstvwxz]sm$/.test(w)) {
+    count++;
+  }
+
+  return Math.max(1, count);
+}
+
+function wordsOf(s) {
+  return s.match(/[A-Za-z][A-Za-z'’-]*/g) || [];
+}
+
+function splitSentences(text) {
+  var P = '\u0001';
+  var p = text.replace(/\b(Mr|Mrs|Ms|Dr|Prof|St|Jr|Sr|vs|etc|e\.g|i\.e|Capt|Col|Gen|Lt|Rev|Hon|Vol|No|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\./gi, function(m){
+    return m.replace('.', P);
+  });
+  p = p.replace(/(\d)\.(\d)/g, '$1' + P + '$2');
+
+  var parts = p.match(/[^.!?]+(?:[.!?]+["'”’)\]]*)?\s*/g) || [];
+  if (parts.length === 0 && text.trim().length > 0) {
+    parts = [text];
+  }
+  return parts.map(function(s){
+    return s.split(P).join('.');
+  });
+}
+
+function esc(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/* --- Linguistic Complexity Analysis --- */
+var SUBORDINATE_PATTERN = '\\b(notwithstanding|although|even though|whereas|inasmuch as|provided that|nevertheless|furthermore|whilst|because|though|unless|since|while|which|whom|whose|wherein|whereby|having\\s+[a-z]+ed)\\b';
+var PASSIVE_PATTERN = '\\b(is|are|was|were|been|being|be|become|got)\\s+([a-z]+(?:ed|en|wn|t))\\b';
+var NOMINALIZATION_PATTERN = '\\b([a-z]{4,}(?:tion|sion|ment|ance|ence|ology|isation|ization))\\b';
+
+function analyzeSentenceComplexity(rawText, words) {
+  var wordCount = words.length;
+  if (wordCount === 0) return { score: 0, complexWords: [], reasons: [] };
+
+  var syllables = 0;
+  var complexWords = [];
+  var totalChars = 0;
+
+  words.forEach(function(w){
+    var syl = countSyllables(w);
+    syllables += syl;
+    totalChars += w.length;
+    if (syl >= 3) {
+      complexWords.push(w);
+    }
+  });
+
+  var avgSyl = syllables / wordCount;
+  var avgWordLen = totalChars / wordCount;
+  var complexRatio = complexWords.length / wordCount;
+
+  var subRegex = new RegExp(SUBORDINATE_PATTERN, 'gi');
+  var subClauses = (rawText.match(subRegex) || []).length;
+
+  var passives = [];
+  var passRegex = new RegExp(PASSIVE_PATTERN, 'gi');
+  var pMatch;
+  while ((pMatch = passRegex.exec(rawText)) !== null) {
+    passives.push(pMatch[0]);
+  }
+
+  var nominalizations = [];
+  var nomRegex = new RegExp(NOMINALIZATION_PATTERN, 'gi');
+  var nMatch;
+  while ((nMatch = nomRegex.exec(rawText)) !== null) {
+    nominalizations.push(nMatch[0]);
+  }
+
+  var punctuationCount = (rawText.match(/[,;:—\-\(\)]/g) || []).length;
+
+  var lengthScore = Math.min(45, (wordCount / 35) * 35);
+  var lexicalScore = Math.min(35, (complexRatio * 100) * 0.7 + (avgSyl - 1.2) * 20);
+  var clauseScore = Math.min(20, (subClauses * 4) + (punctuationCount * 1.5));
+  var passiveScore = Math.min(10, passives.length * 3 + nominalizations.length * 2);
+
+  var totalScore = lengthScore + lexicalScore + clauseScore + passiveScore;
+
+  var reasons = [];
+  if (wordCount >= 35) {
+    reasons.push('Heavy length (' + wordCount + ' words)');
+  } else if (wordCount >= 25) {
+    reasons.push('Long sentence (' + wordCount + ' words)');
+  }
+
+  if (complexWords.length >= 4) {
+    reasons.push(complexWords.length + ' polysyllabic words (' + Math.round(complexRatio * 100) + '%)');
+  }
+
+  if (punctuationCount >= 4 || subClauses >= 2) {
+    reasons.push('Nested clauses (' + (subClauses + 1) + ' clauses, ' + punctuationCount + ' punctuation breaks)');
+  }
+
+  if (nominalizations.length >= 2) {
+    reasons.push('Abstract nouns (' + nominalizations.slice(0, 3).join(', ') + ')');
+  }
+
+  if (passives.length > 0) {
+    reasons.push('Passive construction: "' + passives.slice(0, 2).join('", "') + '"');
+  }
+
+  return {
+    score: totalScore,
+    wordCount: wordCount,
+    syllables: syllables,
+    avgSyl: avgSyl,
+    avgWordLen: avgWordLen,
+    complexWords: complexWords,
+    complexRatio: complexRatio,
+    subClauses: subClauses,
+    punctuationCount: punctuationCount,
+    passives: passives,
+    nominalizations: nominalizations,
+    reasons: reasons
+  };
+}
+
+/* --- Multi-Formula Readability Engine --- */
+function computeReadability(totalWords, totalSents, totalSyllables, totalChars, complexWordCount) {
+  var W = totalWords;
+  var S = totalSents;
+  var Syl = totalSyllables;
+  var C = totalChars;
+  var CW = complexWordCount;
+
+  if (W === 0 || S === 0) {
+    return { fre: 100, fkgl: 0, fog: 0, cli: 0, smog: 0, ari: 0, consensus: 0 };
+  }
+
+  var fre = 206.835 - 1.015 * (W / S) - 84.6 * (Syl / W);
+  fre = Math.max(0, Math.min(100, fre));
+
+  var fkgl = 0.39 * (W / S) + 11.8 * (Syl / W) - 15.59;
+  fkgl = Math.max(1, fkgl);
+
+  var fog = 0.4 * ((W / S) + 100 * (CW / W));
+  fog = Math.max(1, fog);
+
+  var L = (C / W) * 100;
+  var S_100 = (S / W) * 100;
+  var cli = 0.0588 * L - 0.296 * S_100 - 15.8;
+  cli = Math.max(1, cli);
+
+  var smog = 1.0430 * Math.sqrt(Math.max(0, CW * (30 / S))) + 3.1291;
+  smog = Math.max(1, smog);
+
+  var ari = 4.71 * (C / W) + 0.5 * (W / S) - 21.43;
+  ari = Math.max(1, ari);
+
+  var consensus = (fkgl * 0.35 + fog * 0.25 + cli * 0.2 + smog * 0.2);
+
+  return {
+    fre: fre,
+    fkgl: fkgl,
+    fog: fog,
+    cli: cli,
+    smog: smog,
+    ari: ari,
+    consensus: consensus
+  };
+}
+
+function freLabel(fre) {
+  if (fre >= 90) return { label: 'Very Easy', desc: '5th grade reading level. Fast, transparent narrative flow.' };
+  if (fre >= 80) return { label: 'Easy Reading', desc: '6th grade level. Conversational, highly accessible prose.' };
+  if (fre >= 70) return { label: 'Fairly Easy', desc: '7th grade level. Natural, clean editorial style.' };
+  if (fre >= 60) return { label: 'Plain English', desc: '8th–9th grade level. Mainstream fiction and journalism standard.' };
+  if (fre >= 50) return { label: 'Fairly Difficult', desc: '10th–12th grade level. Demands sustained reader concentration.' };
+  if (fre >= 30) return { label: 'Difficult', desc: 'College / Academic level. Dense lexical and syntactic load.' };
+  return { label: 'Very Difficult', desc: 'Scholarly / Graduate level. Extremely ornate, abstract, or bureaucratic.' };
+}
+
+function gradeAudience(g) {
+  if (g <= 6) return 'Elementary (Grades 4–6)';
+  if (g <= 8) return 'Middle School (Ages 11–14)';
+  if (g <= 10) return 'High School Underclass';
+  if (g <= 12) return 'High School Senior';
+  if (g <= 15) return 'College Undergraduate';
+  return 'Graduate / Scholarly';
+}
+
+var SAMPLES = {
+  bureaucratic: "The village lay quiet beneath the hills. Mara walked to the well every morning, and every morning the water tasted the same.\n\nNotwithstanding the considerable difficulties that the administration of the settlement had encountered in reconciling the contradictory expectations of its inhabitants, the council, having deliberated extensively, ultimately determined that the construction of an additional reservoir was unavoidable. She did not agree. \"We don't need more water,\" she said. \"We need to stop wasting it.\"\n\nThe unprecedented bureaucratic circumlocution characterising the subsequent correspondence, which proliferated incessantly throughout the entire autumn, exacerbated the already deteriorating relationship between the villagers and their representatives. Nobody wrote back. Winter came early.",
+
+  classic: "The autumn dusk settled over the manor with a solemn quietude, casting elongated shadows across the damp flagstones of the terrace where generations of ancestors had paced in solitary contemplation.\n\nAlthough the magistrate had resolved to maintain an attitude of detached impartiality regarding the disputed boundary, the persistent appeals of his neighbors, accompanied by an elaborate documentation of ancestral titles, rendered any expeditious resolution exceedingly improbable.\n\nHe opened the heavy ledger with deliberate patience, well aware that the tranquility of the entire valley rested upon the precision of his verdict.",
+
+  punchy: "The boat rocked gently against the wooden pier. John checked the lines twice and stowed the spare oars under the forward thwart.\n\nThe wind blew steady from the northeast. It smelled of cold salt and kelp, and the gray clouds hung low over the harbor mouth.\n\nHe did not speak to the other boatmen. He started the small outboard motor, cast off the stern line, and steered out toward the open swell.",
+
+  academic: "Cognitive architectures that model natural language comprehension frequently operationalize semantic retrieval as a high-dimensional vector space traversal.\n\nHowever, the empirical veracity of such distributed representations remains circumscribed by their susceptibility to distributional artifacts and syntactic hallucinatory behavior during inference.\n\nConsequently, contemporary researchers advocate for neuro-symbolic syntheses that preserve compositional guarantees while maintaining probabilistic flexibility across heterogeneous epistemological domains."
+};
+
+var lastAnalysis = null;
+var currentViewMode = 'top5';
+
+function runAnalysis() {
+  var text = $('in').value;
+  if (!text || text.trim().length === 0) {
+    alert('Please paste or type text to analyze.');
+    return;
+  }
+
+  var rawSentences = splitSentences(text);
+  var sentenceData = [];
+  var totalWords = 0;
+  var totalSyllables = 0;
+  var totalChars = 0;
+  var complexWordsAll = 0;
+  var uniqueWordMap = Object.create(null);
+
+  rawSentences.forEach(function(raw, idx){
+    var w = wordsOf(raw);
+    var analysis = analyzeSentenceComplexity(raw, w);
+
+    w.forEach(function(word){
+      uniqueWordMap[word.toLowerCase()] = true;
+    });
+
+    totalWords += analysis.wordCount;
+    totalSyllables += analysis.syllables;
+    complexWordsAll += analysis.complexWords.length;
+    w.forEach(function(word){ totalChars += word.length; });
+
+    sentenceData.push({
+      index: idx,
+      raw: raw,
+      words: w,
+      analysis: analysis
+    });
+  });
+
+  var realSentences = sentenceData.filter(function(s){ return s.analysis.wordCount > 0; });
+  if (totalWords < 5) {
+    alert('Please paste a longer passage (at least 5 words) to analyze readability.');
+    return;
+  }
+
+  var paragraphs = text.split(/\n\s*\n/).filter(function(p){ return p.trim().length > 0; }).length;
+  var metrics = computeReadability(totalWords, realSentences.length, totalSyllables, totalChars, complexWordsAll);
+
+  var eligible = realSentences.filter(function(s){ return s.analysis.wordCount >= 5; });
+  var hardest = eligible.slice().sort(function(a, b){
+    return b.analysis.score - a.analysis.score;
+  }).slice(0, 5);
+
+  var rankMap = new Map();
+  hardest.forEach(function(s, idx){
+    rankMap.set(s, idx + 1);
+  });
+
+  var maxSentenceWords = 0;
+  realSentences.forEach(function(s){
+    if (s.analysis.wordCount > maxSentenceWords) maxSentenceWords = s.analysis.wordCount;
+  });
+
+  lastAnalysis = {
+    text: text,
+    sentences: sentenceData,
+    realSentences: realSentences,
+    hardest: hardest,
+    rankMap: rankMap,
+    metrics: metrics,
+    totalWords: totalWords,
+    uniqueWords: Object.keys(uniqueWordMap).length,
+    paragraphs: paragraphs,
+    maxSentenceWords: maxSentenceWords,
+    complexWordsAll: complexWordsAll,
+    totalSyllables: totalSyllables,
+    totalChars: totalChars
+  };
+
+  renderResults();
+  $('out').classList.remove('hide');
+  $('out').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderResults() {
+  if (!lastAnalysis) return;
+  var a = lastAnalysis;
+  var m = a.metrics;
+  var freInfo = freLabel(m.fre);
+
+  $('fre').textContent = Math.round(m.fre);
+  $('fre-label').textContent = freInfo.label;
+  $('fre-desc').textContent = freInfo.desc;
+  $('target-audience').textContent = gradeAudience(m.consensus);
+  $('barfill').style.width = m.fre + '%';
+
+  $('grade').textContent = m.consensus.toFixed(1);
+  $('school-level').textContent = gradeAudience(m.consensus);
+
+  var readMin = Math.max(1, Math.round(a.totalWords / 230));
+  var speakMin = Math.max(1, Math.round(a.totalWords / 140));
+  $('time').textContent = readMin + ' min';
+  $('speak-time').textContent = '~' + speakMin + ' min spoken / audio';
+
+  $('words').textContent = a.totalWords.toLocaleString();
+  $('unique-words').textContent = a.uniqueWords.toLocaleString() + ' unique (' + Math.round((a.uniqueWords / a.totalWords) * 100) + '% richness)';
+  $('sents').textContent = a.realSentences.length.toLocaleString();
+  $('paras').textContent = a.paragraphs + ' paragraphs';
+
+  var avgLen = (a.totalWords / a.realSentences.length).toFixed(1);
+  $('avg-len').textContent = avgLen;
+  $('longest-sent').textContent = 'Max: ' + a.maxSentenceWords + ' words';
+
+  var complexPct = Math.round((a.complexWordsAll / a.totalWords) * 100);
+  $('complex-pct').textContent = complexPct + '%';
+  $('complex-count').textContent = a.complexWordsAll + ' complex words';
+
+  $('avg-syl').textContent = (a.totalSyllables / a.totalWords).toFixed(2);
+  $('avg-chars').textContent = (a.totalChars / a.totalWords).toFixed(1) + ' chars / word';
+
+  $('fkgl-val').textContent = 'Grade ' + m.fkgl.toFixed(1);
+  $('fog-val').textContent = m.fog.toFixed(1);
+  $('cli-val').textContent = 'Grade ' + m.cli.toFixed(1);
+  $('smog-val').textContent = 'Grade ' + m.smog.toFixed(1);
+  $('ari-val').textContent = 'Grade ' + m.ari.toFixed(1);
+
+  renderMarkedText();
+  renderHardestList();
+}
+
+function renderMarkedText() {
+  if (!lastAnalysis) return;
+  var a = lastAnalysis;
+  var container = $('marked');
+  container.innerHTML = '';
+
+  var fragment = document.createDocumentFragment();
+
+  var scores = a.realSentences.map(function(s){ return s.analysis.score; });
+  var maxScore = Math.max.apply(null, scores.length ? scores : [1]);
+  var minScore = Math.min.apply(null, scores.length ? scores : [0]);
+  var scoreRange = Math.max(1, maxScore - minScore);
+
+  a.sentences.forEach(function(s, idx){
+    if (s.analysis.wordCount === 0) {
+      var span = document.createElement('span');
+      span.textContent = s.raw;
+      fragment.appendChild(span);
+      return;
+    }
+
+    var rank = a.rankMap.get(s);
+    var sentSpan = document.createElement('span');
+    sentSpan.className = 'reader-sentence';
+    sentSpan.dataset.index = idx;
+
+    if (currentViewMode === 'top5') {
+      if (rank) {
+        sentSpan.classList.add('rank-' + rank);
+      }
+    } else if (currentViewMode === 'heatmap') {
+      var norm = (s.analysis.score - minScore) / scoreRange;
+      if (norm < 0.2) sentSpan.classList.add('heat-1');
+      else if (norm < 0.4) sentSpan.classList.add('heat-2');
+      else if (norm < 0.65) sentSpan.classList.add('heat-3');
+      else if (norm < 0.85) sentSpan.classList.add('heat-4');
+      else sentSpan.classList.add('heat-5');
+    }
+
+    var trailingSpace = (s.raw.match(/\s+$/) || [''])[0];
+    var coreText = s.raw.slice(0, s.raw.length - trailingSpace.length);
+
+    if (currentViewMode === 'complex' && s.analysis.complexWords.length > 0) {
+      var uniqueComplex = [];
+      s.analysis.complexWords.forEach(function(cw){
+        if (uniqueComplex.indexOf(cw) === -1) uniqueComplex.push(cw);
+      });
+      var regexComplex = new RegExp('\\b(' + uniqueComplex.map(function(w){
+        return w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }).join('|') + ')\\b', 'gi');
+
+      sentSpan.innerHTML = esc(coreText).replace(regexComplex, '<span class="complex-word-highlight">$1</span>');
+    } else {
+      sentSpan.textContent = coreText;
+    }
+
+    if (rank && currentViewMode === 'top5') {
+      var badge = document.createElement('span');
+      badge.className = 'rank-badge badge-' + rank;
+      badge.textContent = rank;
+      badge.title = 'Rank #' + rank + ' Hardest Sentence';
+      sentSpan.appendChild(badge);
+    }
+
+    sentSpan.addEventListener('click', function(){
+      selectSentence(s, idx);
+    });
+
+    fragment.appendChild(sentSpan);
+
+    if (trailingSpace) {
+      var spaceSpan = document.createElement('span');
+      spaceSpan.textContent = trailingSpace;
+      fragment.appendChild(spaceSpan);
+    }
+  });
+
+  container.appendChild(fragment);
+}
+
+function renderHardestList() {
+  if (!lastAnalysis) return;
+  var a = lastAnalysis;
+  var hardContainer = $('hard');
+  hardContainer.innerHTML = '';
+
+  if (a.hardest.length === 0) {
+    hardContainer.innerHTML = '<div style="color:var(--muted); font-style:italic;">No sentences with 5+ words found.</div>';
+    return;
+  }
+
+  a.hardest.forEach(function(s, idx){
+    var rank = idx + 1;
+    var an = s.analysis;
+    var card = document.createElement('div');
+    card.className = 'hard-card';
+    card.id = 'hard-card-' + s.index;
+
+    var suggestions = [];
+    if (an.wordCount >= 30) {
+      suggestions.push('Split this sentence into two clearer thoughts.');
+    }
+    if (an.passives.length > 0) {
+      suggestions.push('Convert passive phrasing (' + an.passives.map(function(p){ return '<em>' + esc(p) + '</em>'; }).join(', ') + ') to active voice.');
+    }
+    if (an.nominalizations.length >= 2) {
+      suggestions.push('Replace heavy abstract nouns with direct action verbs (' + an.nominalizations.slice(0, 3).map(function(n){ return '<em>' + esc(n) + '</em>'; }).join(', ') + ').');
+    }
+    if (an.complexWords.length >= 3) {
+      suggestions.push('Consider simpler synonyms for polysyllabic words: ' + an.complexWords.slice(0, 4).map(function(cw){ return '<strong>' + esc(cw) + '</strong>'; }).join(', ') + '.');
+    }
+    if (suggestions.length === 0) {
+      suggestions.push('Pacing is moderate; check rhythm against adjacent sentences.');
+    }
+
+    var reasonsBadges = an.reasons.map(function(r){
+      return '<span class="meta-chip warning">' + esc(r) + '</span>';
+    }).join(' ');
+
+    var complexWordsList = an.complexWords.length > 0
+      ? '<span class="meta-chip">Complex: ' + esc(an.complexWords.slice(0, 5).join(', ')) + (an.complexWords.length > 5 ? '…' : '') + '</span>'
+      : '';
+
+    card.innerHTML =
+      '<div class="hard-card-top">' +
+        '<span class="hard-card-badge badge-' + rank + '">' +
+          '#' + rank + ' Hardest Sentence' +
+        '</span>' +
+        '<div class="hard-card-actions">' +
+          '<button class="hard-card-btn" data-action="locate" data-idx="' + s.index + '">' +
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+            'Locate in text' +
+          '</button>' +
+          '<button class="hard-card-btn" data-action="copy-prompt" data-idx="' + s.index + '">' +
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>' +
+            'Copy Rewrite Prompt' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+      '<blockquote class="hard-card-text">' + esc(s.raw.trim()) + '</blockquote>' +
+      '<div class="hard-card-meta">' +
+        '<span class="meta-chip">' + an.wordCount + ' words</span>' +
+        '<span class="meta-chip">' + (an.syllables / an.wordCount).toFixed(2) + ' syl/word</span>' +
+        reasonsBadges +
+        complexWordsList +
+      '</div>' +
+      '<div class="diagnosis-box">' +
+        '<div class="diagnosis-title">' +
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>' +
+          'Editorial Recommendations:' +
+        '</div>' +
+        '<div>' + suggestions.join('<br>') + '</div>' +
+      '</div>';
+
+    card.querySelector('[data-action="locate"]').onclick = function(){
+      selectSentence(s, s.index);
+    };
+    card.querySelector('[data-action="copy-prompt"]').onclick = function(){
+      copyRewritePrompt(s);
+    };
+
+    hardContainer.appendChild(card);
+  });
+}
+
+function selectSentence(sentenceObj, index) {
+  document.querySelectorAll('.reader-sentence.selected').forEach(function(el){
+    el.classList.remove('selected');
+  });
+  document.querySelectorAll('.hard-card.active').forEach(function(el){
+    el.classList.remove('active');
+  });
+
+  var textSpan = document.querySelector('.reader-sentence[data-index="' + index + '"]');
+  if (textSpan) {
+    textSpan.classList.add('selected');
+    textSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  var card = $('hard-card-' + index);
+  if (card) {
+    card.classList.add('active');
+  }
+}
+
+function copyRewritePrompt(sentenceObj) {
+  var prompt =
+    'Please rewrite the following sentence for greater clarity, flow, and conciseness while preserving its literary nuance.\n\n' +
+    'Original Sentence:\n"' + sentenceObj.raw.trim() + '"\n\n' +
+    'Diagnosis:\n' +
+    '- Current length: ' + sentenceObj.analysis.wordCount + ' words\n' +
+    '- Polysyllabic words: ' + (sentenceObj.analysis.complexWords.join(', ') || 'None') + '\n' +
+    '- Passive phrases: ' + (sentenceObj.analysis.passives.join(', ') || 'None') + '\n' +
+    '- Nominalizations: ' + (sentenceObj.analysis.nominalizations.join(', ') || 'None') + '\n\n' +
+    'Instructions:\n' +
+    '1. Break long compound/complex clauses into shorter, punchier thoughts if helpful.\n' +
+    '2. Shift passive verbs into active verbs.\n' +
+    '3. Provide 2-3 alternative options ranging from minimalist to expressive.';
+
+  copyToClipboard(prompt, 'Rewrite prompt copied to clipboard!');
+}
+
+function copyFullReport() {
+  if (!lastAnalysis) return;
+  var a = lastAnalysis;
+  var m = a.metrics;
+  var freInfo = freLabel(m.fre);
+
+  var lines = [];
+  lines.push('# Readability & Chapter Analysis Report');
+  lines.push('');
+  lines.push('## Executive Summary');
+  lines.push('- **Flesch Reading Ease**: ' + Math.round(m.fre) + '/100 (' + freInfo.label + ')');
+  lines.push('- **Consensus Grade Level**: ' + m.consensus.toFixed(1) + ' (' + gradeAudience(m.consensus) + ')');
+  lines.push('- **Total Words**: ' + a.totalWords.toLocaleString() + ' (' + a.uniqueWords.toLocaleString() + ' unique, ' + Math.round((a.uniqueWords / a.totalWords) * 100) + '% richness)');
+  lines.push('- **Sentences**: ' + a.realSentences.length + ' (Average ' + (a.totalWords / a.realSentences.length).toFixed(1) + ' words/sentence)');
+  lines.push('- **Complex Words (3+ syllables)**: ' + a.complexWordsAll + ' (' + Math.round((a.complexWordsAll / a.totalWords) * 100) + '%)');
+  lines.push('- **Estimated Reading Time**: ' + Math.max(1, Math.round(a.totalWords / 230)) + ' min (~' + Math.max(1, Math.round(a.totalWords / 140)) + ' min spoken)');
+  lines.push('');
+  lines.push('## Multi-Formula Benchmark');
+  lines.push('| Metric | Value | Reference Standard |');
+  lines.push('|---|---|---|');
+  lines.push('| Flesch-Kincaid Grade | ' + m.fkgl.toFixed(1) + ' | US School Grade |');
+  lines.push('| Gunning Fog Index | ' + m.fog.toFixed(1) + ' | Education Years Needed |');
+  lines.push('| Coleman-Liau Index | ' + m.cli.toFixed(1) + ' | Letter/Sentence Ratio |');
+  lines.push('| SMOG Index | ' + m.smog.toFixed(1) + ' | Healthcare Comprehension |');
+  lines.push('| Automated Readability (ARI) | ' + m.ari.toFixed(1) + ' | Character-based Grade |');
+  lines.push('');
+  lines.push('## Top 5 Most Demanding Sentences');
+  lines.push('');
+
+  a.hardest.forEach(function(s, idx){
+    var an = s.analysis;
+    lines.push('### #' + (idx + 1) + ' Hardest Sentence');
+    lines.push('> ' + s.raw.trim());
+    lines.push('');
+    lines.push('- **Word Count**: ' + an.wordCount + ' words');
+    lines.push('- **Syllables per Word**: ' + (an.syllables / an.wordCount).toFixed(2));
+    lines.push('- **Flags**: ' + (an.reasons.join(', ') || 'Standard'));
+    if (an.complexWords.length > 0) {
+      lines.push('- **Complex Vocabulary**: ' + an.complexWords.join(', '));
+    }
+    lines.push('');
+  });
+
+  copyToClipboard(lines.join('\n'), 'Full Markdown Report copied to clipboard!');
+}
+
+$('in').addEventListener('input', function(){
+  var t = this.value;
+  var words = wordsOf(t).length;
+  $('live-counts').textContent = words.toLocaleString() + ' words · ' + t.length.toLocaleString() + ' characters';
+});
+
+document.querySelectorAll('.view-mode-btn').forEach(function(btn){
+  btn.onclick = function(){
+    document.querySelectorAll('.view-mode-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    currentViewMode = btn.dataset.mode;
+    renderMarkedText();
+  };
+});
+
+$('file-in').addEventListener('change', function(e){
+  var file = e.target.files && e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(evt){
+    $('in').value = evt.target.result;
+    $('in').dispatchEvent(new Event('input'));
+    runAnalysis();
+  };
+  reader.readAsText(file);
+});
+
+document.querySelectorAll('.btn-preset').forEach(function(btn){
+  btn.onclick = function(){
+    var key = btn.dataset.sample;
+    if (SAMPLES[key]) {
+      $('in').value = SAMPLES[key];
+      $('in').dispatchEvent(new Event('input'));
+      runAnalysis();
+    }
+  };
+});
+
+$('go').onclick = runAnalysis;
+$('clear').onclick = function(){
+  $('in').value = '';
+  $('in').dispatchEvent(new Event('input'));
+  $('out').classList.add('hide');
+  lastAnalysis = null;
+};
+$('copy-report-btn').onclick = copyFullReport;
+
+$('in').value = SAMPLES.bureaucratic;
+$('in').dispatchEvent(new Event('input'));
+runAnalysis();
+
+})();
+</script>
+</body>
+</html>
